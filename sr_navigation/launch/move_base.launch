@@ -1,0 +1,47 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="multi_robot" default="false"/>
+    <arg name="local_planner" default="teb" doc="Local planner can be either dwa, dwb, base, teb or pose"/>
+  
+    <!-- move_base -->
+    <node if="$(arg multi_robot)" pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+      <!-- base_local_planner parameter is set in the loaded parameter file depending on the local_planner argument -->
+      <param if="$(eval local_planner=='dwa')" name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+      <param if="$(eval local_planner=='teb')" name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+
+      <rosparam file="$(find sr_navigation)/config/local_planner/$(arg local_planner)_local_planner_params.yaml" command="load" />
+
+      <rosparam file="$(find sr_navigation)/config/move_base/move_base_params.yaml" command="load" />
+      <!-- global costmap params -->
+      <rosparam file="$(find sr_navigation)/config/multi_robot/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find sr_navigation)/config/multi_robot/costmap_global_params.yaml" command="load" />
+      <!-- local costmap params -->
+      <rosparam file="$(find sr_navigation)/config/multi_robot/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find sr_navigation)/config/multi_robot/costmap_local_params.yaml" command="load" />
+
+      <!-- remappings -->
+      <remap from="map" to="/map"/>
+
+    </node>
+
+    <node unless="$(arg multi_robot)" pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+      <!-- base_local_planner parameter is set in the loaded parameter file depending on the local_planner argument -->
+      <param if="$(eval local_planner=='dwa')" name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+      <param if="$(eval local_planner=='teb')" name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+
+      <rosparam file="$(find sr_navigation)/config/local_planner/$(arg local_planner)_local_planner_params.yaml" command="load" />
+
+      <rosparam file="$(find sr_navigation)/config/move_base/move_base_params.yaml" command="load" />
+      <!-- global costmap params -->
+      <rosparam file="$(find sr_navigation)/config/single_robot/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find sr_navigation)/config/single_robot/costmap_global_params.yaml" command="load" />
+      <!-- local costmap params -->
+      <rosparam file="$(find sr_navigation)/config/single_robot/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find sr_navigation)/config/single_robot/costmap_local_params.yaml" command="load" />
+
+      <!-- remappings -->
+      <remap from="map" to="/map"/>
+    </node>
+  </launch>

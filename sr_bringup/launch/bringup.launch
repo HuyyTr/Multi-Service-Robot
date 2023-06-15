@@ -1,0 +1,26 @@
+<launch>
+    <arg name="multi_robot" default="false"/>
+
+    <!-- multi_robot -->
+    <group if="$(arg multi_robot)" ns="robot1">
+        <param name="tf_prefix" value="robot1_tf" />
+        <!-- bringup devices -->
+        <include file="$(find sr_bringup)/launch/bringup_devices.launch">
+            <arg name="multi_robot" value="$(arg multi_robot)"/>
+        </include>
+
+        <!-- bringup services -->
+        <include file="$(find sr_bringup)/launch/bringup_services.launch">
+            <arg name="multi_robot" value="$(arg multi_robot)"/>
+        </include>
+    </group>
+
+    <!-- single_robot -->
+    <include unless="$(arg multi_robot)" file="$(find sr_bringup)/launch/bringup_devices.launch"/>
+
+    <include unless="$(arg multi_robot)" file="$(find sr_bringup)/launch/bringup_services.launch">
+        <arg name="multi_robot" value="$(arg multi_robot)"/>
+    </include>
+
+    <node unless="$(arg multi_robot)" name="rviz" pkg="rviz" type="rviz" args="-d $(find sr_bringup)/rviz/rviz_default_view.rviz" />
+</launch>

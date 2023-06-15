@@ -1,0 +1,31 @@
+<launch>
+    <arg name="multi_robot" default="false"/>
+    <arg name="local_planner" default="teb" doc="Local planner can be either dwa, dwb, base, teb or pose"/>
+
+    <!-- Load map_server -->
+    <node unless="$(arg multi_robot)" pkg="map_server" type="map_server" name="map_server" args="$(find sr_navigation)/maps/library_8_th.yaml" output="screen">
+        <remap from="map" to="/map"/>
+    </node>
+
+    <!-- Load amcl -->
+    <!-- single_robot -->
+
+    <include unless="$(arg multi_robot)" file="$(find sr_navigation)/launch/amcl.launch">
+        <arg name="odom_frame_id"   value="odom"/>
+        <arg name="base_frame_id"   value="base_link"/>
+        <arg name="scan_topic" value="scan"/>
+    </include>
+
+    <!-- multi_robot -->
+    <include if="$(arg multi_robot)" file="$(find sr_navigation)/launch/amcl.launch">
+        <arg name="odom_frame_id"   value="robot1_tf/odom"/>
+        <arg name="base_frame_id"   value="robot1_tf/base_link"/>
+        <arg name="scan_topic" value="/robot1/scan"/>
+    </include>
+
+    <!-- Load move_base -->
+    <include file="$(find sr_navigation)/launch/move_base.launch">
+        <arg name="local_planner" value="$(arg local_planner)"/>
+        <arg name="multi_robot" value="$(arg multi_robot)"/>
+    </include>
+</launch>

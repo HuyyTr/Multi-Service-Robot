@@ -1,0 +1,54 @@
+<launch>
+    <arg name="multi_robot" default="false"/>
+
+    <arg name="wheel_diameter" default="0.165"/>
+    <arg name="wheel_separation" default="0.385"/>
+    <arg name="publish_frequency" default="10"/>
+    <arg name="publish_tranform" default="false"/>
+    <arg name="odom_link_frame" default="odom"/>
+    <arg name="base_link_frame" default="base_link"/>
+    <arg name="imu_link_frame" default="imu_link"/>
+
+    <!-- load robot description -->
+    <!-- <include file="$(find sr_description)/launch/srbot_empty_world.launch"/> -->
+
+    <!-- Load the URDF into the ROS Parameter Server -->
+    <param unless="$(arg multi_robot)" name="robot_description" command="$(find xacro)/xacro --inorder '$(find sr_description)/urdf/srbot.urdf.xacro'" />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" 
+          name="robot_state_publisher" output="screen"/>
+
+    <!-- kinematic launch file -->
+    <!-- single_robot -->
+    <include unless="$(arg multi_robot)" file="$(find sr_kinematic)/launch/sr_kinematic.launch">
+      <arg name="wheel_diameter" value="$(arg wheel_diameter)"/>
+      <arg name="wheel_separation" value="$(arg wheel_separation)"/>
+      <arg name="publish_frequency" value="$(arg publish_frequency)"/>
+      <arg name="publish_tranform" value="$(arg publish_tranform)"/>
+      <arg name="odom_link_frame" default="odom"/>
+      <arg name="base_link_frame" default="base_link"/>
+      <arg name="imu_link_frame" default="imu_link"/>
+    </include>
+
+    <!-- multi_robot -->
+    <include if="$(arg multi_robot)" file="$(find sr_kinematic)/launch/sr_kinematic.launch">
+      <arg name="wheel_diameter" value="$(arg wheel_diameter)"/>
+      <arg name="wheel_separation" value="$(arg wheel_separation)"/>
+      <arg name="publish_frequency" value="$(arg publish_frequency)"/>
+      <arg name="publish_tranform" value="$(arg publish_tranform)"/>
+      <arg name="odom_link_frame" default="robot1_tf/odom"/>
+      <arg name="base_link_frame" default="robot1_tf/base_link"/>
+      <arg name="imu_link_frame" default="robot1_tf/imu_link"/>
+    </include>
+
+    <!-- setup sensor fusion by robot_localization node use EKF -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
+      <rosparam command="load" file="$(find sr_bringup)/config/ekf.yaml"/>
+      <remap from="odometry/filtered" to="odom"/>
+    </node>
+
+    <include file="$(find sr_navigation)/launch/navigation.launch">
+        <arg name="multi_robot" value="$(arg multi_robot)"/>
+    </include>
+
+</launch>

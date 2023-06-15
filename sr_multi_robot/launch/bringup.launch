@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="map_file" default="$(find sr_multi_robot)/maps/lib_8th_floor_simulate_restaurant.yaml"/>
+    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" output="screen">
+        <!-- <param name="frame_id" value="/map" /> -->
+    </node>
+
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find sr_description)/urdf/srbot.urdf.xacro'" />
+
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
+      <arg name="port" value="9090"/>
+    </include>
+
+    <arg name="multi_robot_rviz_file" default="$(find sr_multi_robot)/rviz/multi_robot_rviz_view.rviz"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg multi_robot_rviz_file)" output="screen"/>
+
+</launch>
